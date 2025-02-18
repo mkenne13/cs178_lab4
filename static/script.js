@@ -13,7 +13,9 @@ const svg_bar = d3.select("#plot-container")
 
 // Function to update filter options
 function update_filter_options(group_filters) {
+    console.log("recieved updated group filters:", group_filters)
     for (const group in group_filters) {
+        console.log(`Updating filter: ${group}, Values: ${group_filters[group]}`)
         const filterSelect = document.getElementById(`${group}-filter`);
         filterSelect.innerHTML = '<option id="all" value="all">All</option>';
         group_filters[group].forEach(value => {

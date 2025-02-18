@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 import pandas as pd
-import numpy as np
 
 app = Flask(__name__)
 
@@ -9,7 +8,7 @@ orders = pd.read_excel("Sample - Superstore.xls")
 app.filtered_orders = orders
 app.filters = {}
 app.grouper = 'Country/Region'
-app.value = 'Profit'
+app.value = 'Quantity'
 app.agg = 'sum'
 
 # Define the groups, values, and aggregate functions that the user can select
@@ -62,14 +61,60 @@ def update_filter():
     data = request.get_json()
     value = data['value']
     key = data['key']
+    # country : us
+
+    # update app filters
+
+    print(f"Recieved filter update: {key} = {value}")
+    print(f"Before updating, current filters: {app.filters}")
 
     if value != 'all':
-        app.filtered_orders = orders[orders[key] == value]
+        # app.filtered_orders = orders[orders[key] == value]
+        app.filters[key] = value
     else:
-        app.filtered_orders = orders
+        # app.filtered_orders[key] = orders[key]
+        app.filters.pop(key)
 
+    
+    print(groups)
+    # updated_groups = [group for group in groups if group != key]
+    #print(updated_groups)
+        
+    
+    filters_df = orders.copy()
+    for f_key, f_value in app.filters.items():
+        filters_df = filters_df[filters_df[f_key] == f_value]
+
+    app.filtered_orders = filters_df
+    
+    group_filters = {group: app.filtered_orders[group].unique().tolist() for group in groups if group != key}
+    if (key != 'State/Province'):
+        group_filters = {group: app.filtered_orders[group].unique().tolist() for group in groups if group != key and group != 'Country/Region'}
+    else:
+        group_filters = {group: app.filtered_orders[group].unique().tolist() for group in groups if False}
+        
+
+    #group_filters = {group: app.filtered_orders[group].unique().tolist() for group in groups if group != key and group != 'Country/Region'}
+    
+    
+    print(f"Updated filters: {app.filters}")
+    print(f"Before updating, current filters: {group_filters}")
     aggregated_data = get_aggregated_data()
-    group_filters = {group: app.filtered_orders[group].unique().tolist() for group in groups}
+
+    # for group, value in app.filters.items():
+    #     group_filters[group] = 
+
+    # grou
+
+    
+    
+    # # group_filters =  {groups[0]: groups[0], groups[1]: groups[1] ,groups[2]: app.filtered_orders[groups[2]].unique().tolist() }
+
+    # print("before: ",group_filters)
+
+    # group_filters[key] = get_group_filters()[key]
+
+    # print("after: ",group_filters)
 
     return {'data': aggregated_data.to_dict('records'), 'x_column': app.grouper, 'y_column': app.value, 'group_filters': group_filters}
 
