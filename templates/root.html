@@ -41,9 +41,9 @@
         {% for group in groups %}
             <label for="{{group}}-filter"> {{ group }} </label>
             <select id="{{group}}-filter" name="{{group}}-filter" onchange="update_filter(this.value, '{{group}}')">
-                <option id='all' value="all">All</option>
+                <option value="all">All</option>
                 {% for v in group_filters[group] %}
-                    <option id="{{v}}" value="{{v}}">{{ v }}</option>
+                    <option value="{{v}}">{{ v }}</option>
                 {% endfor %}
             </select>
         {% endfor %}

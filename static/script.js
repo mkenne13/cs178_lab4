@@ -13,15 +13,12 @@ const svg_bar = d3.select("#plot-container")
 
 // Function to update filter options
 function update_filter_options(group_filters) {
-    console.log("recieved updated group filters:", group_filters)
     for (const group in group_filters) {
-        console.log(`Updating filter: ${group}, Values: ${group_filters[group]}`)
         const filterSelect = document.getElementById(`${group}-filter`);
-        filterSelect.innerHTML = '<option id="all" value="all">All</option>';
+        filterSelect.innerHTML = '<option value="all">All</option>';
         group_filters[group].forEach(value => {
             const option = document.createElement('option');
             option.value = value;
-            option.id = value;
             option.textContent = value;
             filterSelect.appendChild(option);
         });
@@ -30,19 +27,17 @@ function update_filter_options(group_filters) {
 
 // Function to draw the bar chart
 function draw_bar(data, x_column, y_column) {
-    svg_bar.selectAll("*").remove(); // Clear previous chart
-
-    // Create scales
+    svg_bar.selectAll("*").remove();
+    
     const xScale = d3.scaleBand()
         .domain(data.map(d => d.name))
         .range([0, width])
         .padding(0.4);
-
+    
     const yScale = d3.scaleLinear()
         .domain([0, d3.max(data, d => d.value)])
         .range([height, 0]);
-
-    // Draw bars
+    
     svg_bar.selectAll(".bar")
         .data(data)
         .enter()
@@ -53,19 +48,16 @@ function draw_bar(data, x_column, y_column) {
         .attr("width", xScale.bandwidth())
         .attr("height", d => height - yScale(d.value))
         .attr("fill", "lightblue");
-
-    // Add x-axis
+    
     svg_bar.append("g")
         .attr("transform", `translate(0,${height})`)
         .call(d3.axisBottom(xScale))
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
-
-    // Add y-axis
-    svg_bar.append("g")
-        .call(d3.axisLeft(yScale));
-
+    
+    svg_bar.append("g").call(d3.axisLeft(yScale));
+    
     // Add x-axis label
     svg_bar.append("text")
         .attr("class", "axis-label")
@@ -73,7 +65,7 @@ function draw_bar(data, x_column, y_column) {
         .attr("y", height + margin.bottom - 10)
         .style("text-anchor", "middle")
         .text(x_column);
-
+    
     // Add y-axis label
     svg_bar.append("text")
         .attr("class", "axis-label")
@@ -89,12 +81,9 @@ function update_aggregate(value, key) {
     fetch('/update_aggregate', {
         method: 'POST',
         credentials: 'include',
-        body: JSON.stringify({ value: value, key: key }),
-        cache: 'no-cache',
-        headers: new Headers({
-            'content-type': 'application/json'
-        })
-    }).then(async function (response) {
+        body: JSON.stringify({ value, key }),
+        headers: { 'content-type': 'application/json' }
+    }).then(async response => {
         const results = await response.json();
         draw_bar(results.data, results.x_column, results.y_column);
     });
@@ -105,12 +94,9 @@ function update_filter(value, key) {
     fetch('/update_filter', {
         method: 'POST',
         credentials: 'include',
-        body: JSON.stringify({ value: value, key: key }),
-        cache: 'no-cache',
-        headers: new Headers({
-            'content-type': 'application/json'
-        })
-    }).then(async function (response) {
+        body: JSON.stringify({ value, key }),
+        headers: { 'content-type': 'application/json' }
+    }).then(async response => {
         const results = await response.json();
         draw_bar(results.data, results.x_column, results.y_column);
         update_filter_options(results.group_filters);
